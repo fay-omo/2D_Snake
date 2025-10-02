@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b1ab6cf190b42b04180e01b8dbab5fe5
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 229688
+  packageName: Grass & Tail Animator 2D
+  packageVersion: 1.0
+  assetPath: Assets/Grass_Tail_Animator/Animations/Grass&Tail_Animator.controller
+  uploadId: 518544
