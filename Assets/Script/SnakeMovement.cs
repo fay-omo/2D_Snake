@@ -10,7 +10,7 @@ public class SnakeMovement : MonoBehaviour
     public float moveSpeed = 2f; // Reduced for better collision detection
     public float moveInterval = 0.5f; // Time between moves
     private float timer = 0f;
-    private bool hasStartedMoving = false; // Flag to delay initial movement
+    private bool hasStartedGrowing = false; // Flag to delay initial growth collision
 
     // Swipe detection variables
     private Vector2 touchStartPos;
@@ -18,12 +18,12 @@ public class SnakeMovement : MonoBehaviour
     private float minSwipeDistance = 50f; // Minimum distance for a swipe to register
 
     public List<GameObject> bodyParts = new List<GameObject>();
-    public GameObject bodyPrefab; // Assign a sprite prefab for body segments
+    public GameObject bodyPrefab; // Assign a sprite prefab for body segments with disabled BoxCollider2D
     public GameObject foodPrefab; // Assign a sprite prefab for food
     public GameObject bigFoodPrefab; // Assign a sprite prefab for big food
     public Vector2 gridSize; // Grid boundaries, set dynamically
     public float gridCellSize = 1f; // Size of each grid cell in world units
-    public float bodySpacing = 0.1f; // Custom spacing between body parts (e.g., 0.5 units)
+    public float bodySpacing = 0.1f; // Keeping original spacing as requested
     private int nextBigFoodThreshold = 0; // Total occupiedSpaces for next big food spawn
     private int lastBigFoodSpawn = 0; // Last occupiedSpaces when big food spawned
     [SerializeField] public float bigFoodLifetime = 6f; // Time in seconds big food lasts (public/serialized)
@@ -35,6 +35,9 @@ public class SnakeMovement : MonoBehaviour
 
     void Start()
     {
+        // Ensure the head has the "Head" tag
+        gameObject.tag = "Head";
+
         // Calculate grid size based on screen and adjust camera
         CalculateGridSizeAndCamera();
 
@@ -80,7 +83,7 @@ public class SnakeMovement : MonoBehaviour
         HandleTouchInput();
 
         timer += Time.deltaTime;
-        if (timer >= moveInterval && hasStartedMoving)
+        if (timer >= moveInterval && hasStartedGrowing) // Only move after initial growth
         {
             MoveSnake();
             timer = 0f;
@@ -145,8 +148,9 @@ public class SnakeMovement : MonoBehaviour
 
         GameObject food = Instantiate(foodPrefab, foodPos, Quaternion.identity);
         food.tag = "Food";
-        food.AddComponent<Food>(); // Add Food component dynamically
-        Debug.Log($"Food spawned at: {foodPos}");
+        Food foodComponent = food.AddComponent<Food>(); // Explicitly create and initialize
+        foodComponent.isBeingEaten = false; // Ensure it's not eaten initially
+        Debug.Log($"Food spawned at: {foodPos} with component: {foodComponent != null}");
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -165,11 +169,12 @@ public class SnakeMovement : MonoBehaviour
                 UpdateScore();
                 SpawnFood();
                 CheckAndSpawnBigFood(); // Check for big food spawn
+                hasStartedGrowing = true; // Allow movement after first growth
                 Debug.Log($"After Eating: Score: {score}, New Body Count: {bodyParts.Count}, Foods Spawned: 1");
             }
             else
             {
-                Debug.LogWarning("Food component missing or already being eaten!");
+                Debug.LogWarning($"Food component missing or already being eaten! Component: {foodComponent}, isBeingEaten: {foodComponent?.isBeingEaten}");
             }
         }
         else if (other.CompareTag("Bigfood"))
@@ -235,10 +240,11 @@ public class SnakeMovement : MonoBehaviour
 
             GameObject bigFood = Instantiate(bigFoodPrefab, bigFoodPos, Quaternion.identity);
             bigFood.tag = "Bigfood";
-            bigFood.AddComponent<BigFood>(); // Add BigFood component dynamically
+            BigFood bigFoodComponent = bigFood.AddComponent<BigFood>(); // Explicitly create and initialize
+            bigFoodComponent.isBeingEaten = false; // Ensure it's not eaten initially
             StartCoroutine(DestroyBigFoodAfterTime(bigFood)); // Start timer for big food
             ShowCountdown(); // Show countdown UI
-            Debug.Log($"Bigfood spawned at: {bigFoodPos} at occupiedSpaces: {occupiedSpaces}");
+            Debug.Log($"Bigfood spawned at: {bigFoodPos} with component: {bigFoodComponent != null}");
             lastBigFoodSpawn = occupiedSpaces; // Update last spawn point
             SetNextBigFoodThreshold(); // Set new threshold based on last spawn
         }
@@ -335,7 +341,7 @@ public class SnakeMovement : MonoBehaviour
             if (newDirection != -direction)
             {
                 direction = newDirection;
-                hasStartedMoving = true; // Allow movement after first swipe
+                hasStartedGrowing = true; // Allow movement after first swipe
                 GetComponent<Transform>().rotation = Quaternion.LookRotation(Vector3.forward, direction); // Rotate head
                 Debug.Log($"Direction changed to: {direction}");
             }
@@ -346,9 +352,25 @@ public class SnakeMovement : MonoBehaviour
     {
         Vector2 lastPosition = bodyParts.Count > 0
             ? (Vector2)bodyParts[bodyParts.Count - 1].transform.position
-            : (Vector2)transform.position - direction * bodySpacing; // Use custom spacing
+            : (Vector2)transform.position - direction * bodySpacing; // Use original spacing
         GameObject newPart = Instantiate(bodyPrefab, lastPosition, Quaternion.identity);
         newPart.GetComponent<SpriteRenderer>().sortingOrder = bodyParts.Count + 1;
+
+        // Enable BoxCollider2D only after the second body segment
+        if (bodyParts.Count >= 4)
+        {
+            BoxCollider2D collider = newPart.GetComponent<BoxCollider2D>();
+            if (collider != null)
+            {
+                collider.enabled = true;
+                Debug.Log($"Enabled collider for body at: {newPart.transform.position}");
+            }
+        }
+        else
+        {
+            Debug.Log($"Kept collider disabled for first body at: {newPart.transform.position}");
+        }
+
         bodyParts.Add(newPart);
     }
 
@@ -369,7 +391,7 @@ public class SnakeMovement : MonoBehaviour
             if (newPosition == (Vector2)body.transform.position)
             {
                 Debug.Log("Game Over: Collided with body! New Position: " + newPosition);
-                Time.timeScale = 0;
+                // No need to handle game over here; SnakeBodyCollision will handle it
                 return;
             }
         }
@@ -381,18 +403,36 @@ public class SnakeMovement : MonoBehaviour
 
         Debug.Log($"MoveSnake: New Position: {newPosition}, Wrapped Position: {wrappedPosition}, Current Position: {transform.position}");
 
-        // Update body parts from head to tail with custom spacing and rotation
+        // Update body parts from head to tail with custom spacing and segmented rotation
         if (bodyParts.Count > 0)
         {
             Vector2 nextPosition = newPosition - direction * bodySpacing;
             nextPosition.x = ((nextPosition.x + halfGridX) % gridSize.x + gridSize.x) % gridSize.x - halfGridX;
             nextPosition.y = ((nextPosition.y + halfGridY) % gridSize.y + gridSize.y) % gridSize.y - halfGridY;
 
-            for (int i = 0; i < bodyParts.Count; i++)
+            // Rotate the first body segment to match the head's direction
+            if (bodyParts.Count > 0)
+            {
+                bodyParts[0].transform.position = nextPosition;
+                bodyParts[0].transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
+            }
+
+            // Propagate position and calculate rotation for subsequent segments based on the previous segment
+            for (int i = 1; i < bodyParts.Count; i++)
             {
                 Vector2 currentPosition = (Vector2)bodyParts[i].transform.position;
                 bodyParts[i].transform.position = nextPosition;
-                bodyParts[i].transform.rotation = Quaternion.LookRotation(Vector3.forward, direction); // Rotate body to match direction
+
+                // Calculate direction from the current segment to the previous segment
+                Vector2 prevPosition = (Vector2)bodyParts[i - 1].transform.position;
+                Vector2 segmentDirection = (prevPosition - currentPosition).normalized;
+
+                // Rotate to face the direction of the previous segment
+                if (segmentDirection != Vector2.zero)
+                {
+                    bodyParts[i].transform.rotation = Quaternion.LookRotation(Vector3.forward, segmentDirection);
+                }
+
                 nextPosition = currentPosition - direction * bodySpacing;
                 nextPosition.x = ((nextPosition.x + halfGridX) % gridSize.x + gridSize.x) % gridSize.x - halfGridX;
                 nextPosition.y = ((nextPosition.y + halfGridY) % gridSize.y + gridSize.y) % gridSize.y - halfGridY;
