@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,5 +18,23 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    public void onGameOver()
+    {
+        gameOverUI.SetActive(true);
+        gameCanvasUI.SetActive(false);
+        ResetGameState();
+    }
+
+    public void ResetGameState()
+    {
+        // Stop all coroutines and invokes
+        StopAllCoroutines();
+     
+        // Reset time
+        Time.timeScale = 1f;
+
+        Debug.Log("Game state reset complete.");
     }
 }

@@ -2146,7 +2146,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2145023857}
   m_CullTransparentMesh: 1
---- !u!1001 &2306641504633629357
+--- !u!1001 &5786612072181448683
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2198,14 +2198,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sanke Head
       objectReference: {fileID: 0}
-    - target: {fileID: 2447458345762936345, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: gameOverUI
-      value: 
-      objectReference: {fileID: 1247523798}
-    - target: {fileID: 2447458345762936345, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: gameCanvasUI
-      value: 
-      objectReference: {fileID: 1456066403}
     - target: {fileID: 3177208071744471241, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
       propertyPath: scoreText
       value: 
@@ -2214,30 +2206,6 @@ PrefabInstance:
       propertyPath: countdownSlider
       value: 
       objectReference: {fileID: 1323900368}
-    - target: {fileID: 7612249602075905830, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: m_Radius
-      value: 1.510427
-      objectReference: {fileID: 0}
-    - target: {fileID: 7612249602075905830, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: m_Offset.x
-      value: -0.10392547
-      objectReference: {fileID: 0}
-    - target: {fileID: 7612249602075905830, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: m_Offset.y
-      value: 9.860255
-      objectReference: {fileID: 0}
-    - target: {fileID: 9041417801921626958, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: m_Color.b
-      value: 0.8886792
-      objectReference: {fileID: 0}
-    - target: {fileID: 9041417801921626958, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: m_Color.g
-      value: 0.989498
-      objectReference: {fileID: 0}
-    - target: {fileID: 9041417801921626958, guid: b58917012e68dca4b8cbab6cdd59abd7, type: 3}
-      propertyPath: m_Color.r
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2251,6 +2219,6 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 1456066407}
   - {fileID: 265066210}
-  - {fileID: 2306641504633629357}
+  - {fileID: 5786612072181448683}
   - {fileID: 1247523802}
   - {fileID: 1048980404}
